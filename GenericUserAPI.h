@@ -16,7 +16,7 @@ public:
     static crow::response readResource(std::string id); 
     static crow::response readAllResources(crow::request req);
     static void updateResource(crow::request req, crow::response& res, std::string id); 
-    static crow::response deleteResource(std::string id); 
+    static crow::response deleteResource(crow::request req, std::string id); 
 };
 
 // #include "GenericUserAPI.cpp"
