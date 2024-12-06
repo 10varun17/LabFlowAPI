@@ -10,7 +10,7 @@ class GenericUserAPI
 {
 public:
     static std::map<std::string, T> resourceMap;
-    static crow::response searchByName(std::string searchString);
+    static crow::response searchUsers(std::string searchString);
     static crow::response sortUsers(std::string sortString);
     static crow::response createResource(crow::request req);
     static crow::response readResource(std::string id); 
