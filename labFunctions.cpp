@@ -34,6 +34,9 @@ response searchLabs(string searchString)
             found.push_back(keyValuePair.second);
     }
 
+    if (found.size() == 0)
+        return response(404, "Not Found");
+
     // Create a new JSON write value to write to the file
     json::wvalue jsonWriteValue;
 
@@ -124,26 +127,22 @@ response sortLabs(string sortString)
     for (pair<string, Lab> keyValuePair : labsMap) 
         labsToSort.push_back(keyValuePair);
 
-    if (sortString == "name")
+    if (toLower(sortString) == "name")
         sort(labsToSort.begin(), labsToSort.end(), comparatorName); 
-
-    if (sortString == "id")
+    else if (toLower(sortString) == "id")
         sort(labsToSort.begin(), labsToSort.end(), comparatorId); 
-
-    if (toLower(sortString) == "totalamount")
+    else if (toLower(sortString) == "totalamount")
         sort(labsToSort.begin(), labsToSort.end(), comparatorTotalAmount); 
-
-    if (toLower(sortString) == "remainingamount")
+    else if (toLower(sortString) == "remainingamount")
         sort(labsToSort.begin(), labsToSort.end(), comparatorRemainingAmount); 
-
-    if (toLower(sortString) == "spentamount")
+    else if (toLower(sortString) == "spentamount")
         sort(labsToSort.begin(), labsToSort.end(), comparatorSpentAmount); 
-
-    if (toLower(sortString) == "numexperiments")
+    else if (toLower(sortString) == "numexperiments")
         sort(labsToSort.begin(), labsToSort.end(), comparatorNumExperiments); 
-
-    if (toLower(sortString) == "numequipments")
+    else if (toLower(sortString) == "numequipments")
         sort(labsToSort.begin(), labsToSort.end(), comparatorNumEquipments); 
+    else
+        return response(400, "Invalid sort request");
 
     // Create a new JSON write value use to write to the file.
     json::wvalue jsonWriteValue;
@@ -169,6 +168,9 @@ response sortLabs(string sortString)
  */
 response filterLabs(string type, float amount)
 {
+    if (toLower(type) != "totalamount" && toLower(type) != "remainingamount" && toLower(type) != "spentamount")
+        return response(400, "Invalid filter request");
+
     vector<Lab> found;
 
     for (pair<string, Lab> keyValuePair : labsMap)
@@ -181,6 +183,9 @@ response filterLabs(string type, float amount)
         else if (toLower(type) == "spentamount" && budget.getSpentAmount() >= amount)
             found.push_back(keyValuePair.second);
     }
+
+    if (found.size() == 0)
+        return response(404, "Not Found");
 
     // Create a new JSON write value
     json::wvalue jsonWriteValue;
@@ -208,6 +213,13 @@ response filterLabs(string type, float amount)
  */
 response createLab(request req) 
 {
+    string apiKeyHeader = "Authorization";
+    string expectedApiKey = "PHYS17";
+    
+    // Validate the api key in the request header.
+    if (!req.headers.count(apiKeyHeader) || req.headers.find(apiKeyHeader)->second != expectedApiKey) 
+        return response(401);
+        
     // Load the request body string into a JSON read value.
     json::rvalue readValueJson = json::load(req.body);
 
@@ -315,6 +327,17 @@ response readAllLabs(request req)
  */
 void updateLab(request req, response& res, string id) 
 {
+    string apiKeyHeader = "Authorization";
+    string expectedApiKey = "PHYS17";
+    
+    // Validate the api key in the request header.
+    if (!req.headers.count(apiKeyHeader) || req.headers.find(apiKeyHeader)->second != expectedApiKey) 
+    {
+        res.code = 401; // Unauthorized
+        res.end("Invalid API key");
+        return;
+    }
+    
     try 
     {
         // Get the Lab from the Lab map.
@@ -359,8 +382,15 @@ void updateLab(request req, response& res, string id)
  * 204 No Content when the lab is deleted successfully
  * 404 Not Found if the requested lab is not found
  */
-response deleteLab(string id) 
+response deleteLab(request req, string id) 
 {
+    string apiKeyHeader = "Authorization";
+    string expectedApiKey = "PHYS17";
+    
+    // Validate the api key in the request header.
+    if (!req.headers.count(apiKeyHeader) || req.headers.find(apiKeyHeader)->second != expectedApiKey) 
+        return response(401);
+
     try 
     {
         // Get the Lab from the Lab map.

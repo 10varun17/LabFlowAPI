@@ -35,6 +35,9 @@ response searchExperiments(string searchString)
             found.push_back(keyValuePair.second);
     }
 
+    if (found.size() == 0)
+        return response(404, "Not Found");
+
     // Create a new JSON write value to write to the file
     json::wvalue jsonWriteValue;
 
@@ -137,27 +140,22 @@ response sortExperiments(string sortString)
 
     if (sortString == "id")
         sort(experimentsToSort.begin(), experimentsToSort.end(), comparatorId); 
-
-    if (toLower(sortString) == "cost")
+    else if (toLower(sortString) == "cost")
         sort(experimentsToSort.begin(), experimentsToSort.end(), comparatorCost); 
-
-    if (toLower(sortString) == "starttime")
+    else if (toLower(sortString) == "starttime")
         sort(experimentsToSort.begin(), experimentsToSort.end(), comparatorStartTime); 
-
-    if (toLower(sortString) == "endtime")
+    else if (toLower(sortString) == "endtime")
         sort(experimentsToSort.begin(), experimentsToSort.end(), comparatorEndTime); 
-
-    if (toLower(sortString) == "numusers" || toLower(sortString) == "users")
+    else if (toLower(sortString) == "numusers" || toLower(sortString) == "users")
         sort(experimentsToSort.begin(), experimentsToSort.end(), comparatorNumUsers); 
-
-    if (toLower(sortString) == "numequipments" || toLower(sortString) == "equipments")
+    else if (toLower(sortString) == "numequipments" || toLower(sortString) == "equipments")
         sort(experimentsToSort.begin(), experimentsToSort.end(), comparatorNumEquipments); 
-
-    if (toLower(sortString) == "numcitations" || toLower(sortString) == "citations")
+    else if (toLower(sortString) == "numcitations" || toLower(sortString) == "citations")
         sort(experimentsToSort.begin(), experimentsToSort.end(), comparatorNumCitations); 
-
-    if (toLower(sortString) == "numpublications" || toLower(sortString) == "publications")
+    else if (toLower(sortString) == "numpublications" || toLower(sortString) == "publications")
         sort(experimentsToSort.begin(), experimentsToSort.end(), comparatorNumPublications); 
+    else
+        return response(400, "Invalid sort request");
 
     // Create a new JSON write value use to write to the file.
     json::wvalue jsonWriteValue;
@@ -175,6 +173,9 @@ response sortExperiments(string sortString)
 
 response filterExperiments(string type, float number)
 {
+    if (toLower(type) != "citations" && toLower(type) != "publications")
+        return response(400, "Invalid filter type");
+
     vector<Experiment> found;
 
     for (pair<string, Experiment> keyValuePair : experimentsMap)
@@ -185,6 +186,9 @@ response filterExperiments(string type, float number)
         else if (toLower(type) == "publications" && output.getPublishedIn().size() >= number)
             found.push_back(keyValuePair.second);
     }
+
+    if (found.size() == 0)
+        return response(404, "Not Found");
 
     // Create a new JSON write value
     json::wvalue jsonWriteValue;
@@ -209,6 +213,9 @@ response filterExperiments(bool approvalStatus)
             found.push_back(keyValuePair.second);
     }
 
+    if (found.size() == 0)
+        return response(404, "Not Found");
+
     // Create a new JSON write value
     json::wvalue jsonWriteValue;
 
@@ -231,6 +238,9 @@ response filterExperiments(float cost)
         if (keyValuePair.second.getCost() >= cost)
             found.push_back(keyValuePair.second);
     }
+
+    if (found.size() == 0)
+        return response(404, "Not Found");
 
     // Create a new JSON write value
     json::wvalue jsonWriteValue;
@@ -256,6 +266,13 @@ response filterExperiments(float cost)
  */
 response createExperiment(request req) 
 {
+    string apiKeyHeader = "Authorization";
+    string expectedApiKey = "PHYS17";
+    
+    // Validate the api key in the request header.
+    if (!req.headers.count(apiKeyHeader) || req.headers.find(apiKeyHeader)->second != expectedApiKey) 
+        return response(401);
+
     // Load the request body string into a JSON read value.
     json::rvalue readValueJson = json::load(req.body);
 
@@ -286,7 +303,7 @@ response createExperiment(request req)
  * @param id The unique identifier of the Experiment.
  * @return res The HTTP response object.
  */
-response readExperiment(string id) 
+response readExperiment(request req, string id) 
 {
     try 
     {
@@ -328,7 +345,7 @@ response readAllExperiments(request req)
         } catch (invalid_argument& exception)
         {
             cerr << "Can't convert the number to float type. Invalid argument!" << endl;
-            return response(400, "Invalid request");
+            return response(400, "Invalid cost");
         }
     }
 
@@ -381,6 +398,17 @@ response readAllExperiments(request req)
  */
 void updateExperiment(request req, response& res, string id) 
 {
+    string apiKeyHeader = "Authorization";
+    string expectedApiKey = "PHYS17";
+    
+    // Validate the api key in the request header.
+    if (!req.headers.count(apiKeyHeader) || req.headers.find(apiKeyHeader)->second != expectedApiKey) 
+    {
+        res.code = 401; // Unauthorized
+        res.end("Invalid API key");
+        return;
+    }
+
     try 
     {
         // Get the Experiment from the Experiment map.
@@ -424,8 +452,15 @@ void updateExperiment(request req, response& res, string id)
  * @param id The unique identifier of the Experiment.
  * @return res The HTTP response object.
  */
-response deleteExperiment(string id) 
+response deleteExperiment(request req, string id) 
 {
+    string apiKeyHeader = "Authorization";
+    string expectedApiKey = "PHYS17";
+    
+    // Validate the api key in the request header.
+    if (!req.headers.count(apiKeyHeader) || req.headers.find(apiKeyHeader)->second != expectedApiKey) 
+        return response(401);
+
     try 
     {
         // Get the Experiment from the Experiment map.

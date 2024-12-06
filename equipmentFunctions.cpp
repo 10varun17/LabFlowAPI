@@ -28,6 +28,9 @@ response searchEquipments(string searchString)
             found.push_back(keyValuePair.second);
     }
 
+    if (found.size() == 0)
+        return response(404, "Not Found");
+
     // Create a new JSON write value to write to the file
     json::wvalue jsonWriteValue;
 
@@ -50,6 +53,15 @@ struct
     } 
 } comparatorId;
 
+// Comparator to sort pairs according to name.
+struct
+{
+    bool operator()(pair<string, Equipment>& a, pair<string, Equipment>& b) 
+    { 
+        return a.second.getName() < b.second.getName(); 
+    } 
+} comparatorName;
+
 response sortEquipments(string sortString) 
 {
     vector<pair<string, Equipment>> equipmentsToSort;
@@ -57,8 +69,12 @@ response sortEquipments(string sortString)
     for (pair<string, Equipment> keyValuePair : equipmentsMap) 
         equipmentsToSort.push_back(keyValuePair);
 
-    if (sortString == "id")
-        sort(equipmentsToSort.begin(), equipmentsToSort.end(), comparatorId); 
+    if (toLower(sortString) == "id")
+        sort(equipmentsToSort.begin(), equipmentsToSort.end(), comparatorId);
+    else if (toLower(sortString) == "name")
+        sort(equipmentsToSort.begin(), equipmentsToSort.end(), comparatorName); 
+    else   
+        return response(400, "Invalid sort request");
 
     // Create a new JSON write value use to write to the file.
     json::wvalue jsonWriteValue;
@@ -84,6 +100,9 @@ response filterEquipments(bool available)
             found.push_back(keyValuePair.second);
     }
 
+    if (found.size() == 0)
+        return response(404, "Not Found");
+
     // Create a new JSON write value
     json::wvalue jsonWriteValue;
 
@@ -108,6 +127,13 @@ response filterEquipments(bool available)
  */
 response createEquipment(request req) 
 {
+    string apiKeyHeader = "Authorization";
+    string expectedApiKey = "PHYS17";
+    
+    // Validate the api key in the request header.
+    if (!req.headers.count(apiKeyHeader) || req.headers.find(apiKeyHeader)->second != expectedApiKey) 
+        return response(401);
+
     // Load the request body string into a JSON read value.
     json::rvalue readValueJson = json::load(req.body);
 
@@ -207,6 +233,17 @@ response readAllEquipments(request req)
  */
 void updateEquipment(request req, response& res, string id) 
 {
+    string apiKeyHeader = "Authorization";
+    string expectedApiKey = "PHYS17";
+    
+    // Validate the api key in the request header.
+    if (!req.headers.count(apiKeyHeader) || req.headers.find(apiKeyHeader)->second != expectedApiKey) 
+    {
+        res.code = 401; // Unauthorized
+        res.end("Invalid API key");
+        return;
+    }
+
     try 
     {
         // Get the Equipment from the Equipment map.
@@ -250,8 +287,15 @@ void updateEquipment(request req, response& res, string id)
  * @param id The unique identifier of the Equipment.
  * @return res The HTTP response object.
  */
-response deleteEquipment(string id) 
+response deleteEquipment(request req, string id) 
 {
+    string apiKeyHeader = "Authorization";
+    string expectedApiKey = "PHYS17";
+    
+    // Validate the api key in the request header.
+    if (!req.headers.count(apiKeyHeader) || req.headers.find(apiKeyHeader)->second != expectedApiKey) 
+        return response(401);
+        
     try 
     {
         // Get the Equipment from the Equipment map.

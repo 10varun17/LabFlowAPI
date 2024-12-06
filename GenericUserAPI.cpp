@@ -31,7 +31,7 @@ extern std::map<std::string, Lab> labsMap;
  * @return A JSON response containing matching resources.
  */
 template<typename T>
-response GenericUserAPI<T>::searchByName(string searchString)
+response GenericUserAPI<T>::searchUsers(string searchString)
 {
     vector<T> found;
     for(pair<string, T> resourcePair : resourceMap)
@@ -44,6 +44,9 @@ response GenericUserAPI<T>::searchByName(string searchString)
             found.push_back(resourcePair.second);
         }
     }
+
+    if (found.size() == 0)
+        return response(404, "Not Found");
 
     // Create a new JSON write value to write to the file
     json::wvalue jsonWriteValue;
@@ -93,21 +96,14 @@ response GenericUserAPI<T>::sortUsers(string sortString)
 
     // For each string/PizzaSize pair in the pizzaSizes map.
     for (pair<string, T> resourcePair : resourceMap) 
-    {
         objectsToSort.push_back(resourcePair);
-    }
 
     if (sortString == "name")
-    {
-        // Sort using comparator function 
         sort(objectsToSort.begin(), objectsToSort.end(), comparatorName); 
-    }
-
-    if (sortString == "id")
-    {
-        // Sort using comparator function 
+    else if (sortString == "id") 
         sort(objectsToSort.begin(), objectsToSort.end(), comparatorId); 
-    }
+    else
+        return response(400, "Invalid sort request");
 
     // Create a new JSON write value use to write to the file.
     json::wvalue jsonWriteValue;
@@ -136,13 +132,11 @@ template<typename T>
 response GenericUserAPI<T>::createResource(request req) 
 {
     string apiKeyHeader = "Authorization";
-    string expectedApiKey = "AJF328JDI83HD1";
+    string expectedApiKey = "PHYS17";
     
     // Validate the api key in the request header.
     if (!req.headers.count(apiKeyHeader) || req.headers.find(apiKeyHeader)->second != expectedApiKey) 
-    {
         return response(401);
-    }
 
     // Load the request body string into a JSON read value.
     json::rvalue readValueJson = json::load(req.body);
@@ -204,16 +198,12 @@ template<typename T>
 response GenericUserAPI<T>::readAllResources(request req) 
 {
     // If there is a search parameter on the request, then search by name.
-    if (req.url_params.get("searchByName"))
-    {
-        return searchByName(req.url_params.get("searchByName"));
-    }
+    if (req.url_params.get("search"))
+        return searchUsers(req.url_params.get("search"));
 
     // If there is a search parameter on the request, then search by name.
     if (req.url_params.get("sort"))
-    {
         return sortUsers(req.url_params.get("sort"));
-    }
 
     // Create a new JSON write value use to write to the file.
     json::wvalue jsonWriteValue;
@@ -243,16 +233,16 @@ response GenericUserAPI<T>::readAllResources(request req)
 template<typename T> 
 void GenericUserAPI<T>::updateResource(request req, response& res, string id) 
 {
-    // string apiKeyHeader = "Authorization";
-    // string expectedApiKey = "AJF328JDI83HD1";
+    string apiKeyHeader = "Authorization";
+    string expectedApiKey = "PHYS17";
     
-    // // Validate the api key in the request header.
-    // if (!req.headers.count(apiKeyHeader) || req.headers.find(apiKeyHeader)->second != expectedApiKey) 
-    // {
-    //     res.code = 401; // Unauthorized
-    //     res.end("Invalid API key");
-    //     return;
-    // }
+    // Validate the api key in the request header.
+    if (!req.headers.count(apiKeyHeader) || req.headers.find(apiKeyHeader)->second != expectedApiKey) 
+    {
+        res.code = 401; // Unauthorized
+        res.end("Invalid API key");
+        return;
+    }
 
     try 
     {
@@ -291,6 +281,17 @@ void GenericUserAPI<T>::updateResource(request req, response& res, string id)
 template<> 
 void GenericUserAPI<Administrator>::updateResource(request req, response& res, string id) 
 {
+    string apiKeyHeader = "Authorization";
+    string expectedApiKey = "PHYS17";
+    
+    // Validate the api key in the request header.
+    if (!req.headers.count(apiKeyHeader) || req.headers.find(apiKeyHeader)->second != expectedApiKey) 
+    {
+        res.code = 401; // Unauthorized
+        res.end("Invalid API key");
+        return;
+    }
+
     try 
     {
         Administrator& resource = resourceMap.at(id);
@@ -328,8 +329,15 @@ void GenericUserAPI<Administrator>::updateResource(request req, response& res, s
  * @return res The HTTP response object.
  */
 template<typename T> 
-response GenericUserAPI<T>::deleteResource(string id) 
+response GenericUserAPI<T>::deleteResource(request req, string id) 
 {
+    string apiKeyHeader = "Authorization";
+    string expectedApiKey = "PHYS17";
+    
+    // Validate the api key in the request header.
+    if (!req.headers.count(apiKeyHeader) || req.headers.find(apiKeyHeader)->second != expectedApiKey) 
+        return response(401);
+
     try 
     {
         // Get the resource from the resource map.
