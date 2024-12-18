@@ -171,6 +171,14 @@ response sortExperiments(string sortString)
     return response(jsonWriteValue.dump());
 }
 
+/**
+ * @brief Filters labs that has a given minimum amount of budget of a given type
+ * 
+ * @param type A string representing the type of budget information to filter by.
+ * There are two valid such types: citations, publications
+ * @param number A float representing the minimum amount when filtering experiments
+ * @return A list of all labs that has a given minimum amount of budget of a given type
+ */
 response filterExperiments(string type, float number)
 {
     if (toLower(type) != "citations" && toLower(type) != "publications")
@@ -203,6 +211,12 @@ response filterExperiments(string type, float number)
     return response(jsonWriteValue.dump());
 }
 
+/**
+ * @brief Filters experiments that are approved / not approved
+ * 
+ * @param bool A string representing the approval status information to filter by.
+ * @return A list of all experiments that matches to the given approval status status 
+ */
 response filterExperiments(bool approvalStatus)
 {
     vector<Experiment> found;
@@ -229,6 +243,12 @@ response filterExperiments(bool approvalStatus)
     return response(jsonWriteValue.dump());
 }
 
+/**
+ * @brief Filters equipments that are expensive than at least some cost
+ * 
+ * @param cost A float representing the minimum cost to filter by.
+ * @return A list of all experiments that are expensive than at least the given cost 
+ */
 response filterExperiments(float cost)
 {
     vector<Experiment> found;
@@ -309,7 +329,7 @@ response readExperiment(request req, string id)
     {
         // Get the Experiment from the Experiment map.
         Experiment experiment = experimentsMap.at(id);
-
+    
         // Return the Experiment as a JSON string.
         return response(experiment.convertToJson().dump());
     } 

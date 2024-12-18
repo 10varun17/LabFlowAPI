@@ -19,6 +19,4 @@ public:
     static crow::response deleteResource(crow::request req, std::string id); 
 };
 
-// #include "GenericUserAPI.cpp"
-
 #endif // GENERIC_USER_API_H

@@ -15,6 +15,12 @@ using namespace crow;
 
 extern map<string, Equipment> equipmentsMap;
 
+/**
+ * @brief Searches experiments by name or description.
+ *
+ * @param searchString A string to search for in titles and descriptions of experiments.
+ * @return JSON response containing matching experiments.
+ */
 response searchEquipments(string searchString)
 {
     vector<Equipment> found;
@@ -62,6 +68,13 @@ struct
     } 
 } comparatorName;
 
+/**
+ * @brief Handles the GET request that includes the sort parameter for sorting users
+ * 
+ * @param sortString a string indicating the sorting criterion
+ * @return a response object containing a JSON array of sorted T objects. 
+ *         If an unsupported sortString is provided, returns the T in their original order.
+*/
 response sortEquipments(string sortString) 
 {
     vector<pair<string, Equipment>> equipmentsToSort;
@@ -90,6 +103,12 @@ response sortEquipments(string sortString)
     return response(jsonWriteValue.dump());
 }
 
+/**
+ * @brief Filters equipments that are available / unavailable
+ * 
+ * @param bool A string representing the availability information to filter by.
+ * @return A list of all equipment that matches to the given availability status 
+ */
 response filterEquipments(bool available)
 {
     vector<Equipment> found;

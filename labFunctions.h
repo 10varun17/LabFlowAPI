@@ -10,7 +10,7 @@ crow::response createLab(crow::request req);
 crow::response readLab(std::string id);
 crow::response readAllLabs(crow::request req);
 void updateLab(crow::request req, crow::response& res, std::string id); 
-crow::response deleteLab(std::string id);
+crow::response deleteLab(crow::request req, std::string id);
 crow::response searchLabs(std::string searchString);
 crow::response filterLabs(std::string type, float amount);
 crow::response sortLabs(std::string sortString);

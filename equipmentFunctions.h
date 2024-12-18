@@ -12,7 +12,7 @@ crow::response readAllEquipments(crow::request req);
 void updateEquipment(crow::request req, crow::response& res, std::string id); 
 crow::response deleteEquipment(crow::request req, std::string id);
 crow::response searchEquipments(std::string searchString);
-crow::response sortEquipments(std::string sortString);
 crow::response filterEquipments(bool available);
+crow::response sortEquipments(std::string sortString);
 
 #endif // EQUIPMENT_FUNCTIONS_H 

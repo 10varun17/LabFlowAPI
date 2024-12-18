@@ -1,11 +1,14 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest.h>
+#include <string>
 #include "toLowerHelper.h"
 
-TEST_CASE("Testing this class functionality") 
+using namespace std;
+// using namespace toLowerHelper;
+
+TEST_CASE("Testing functionalities of toLower") 
 {
-    SUBCASE("This function should do that")
-    {
-        CHECK(1==1);
-    }
+    CHECK("tolower"==toLower("toLower")); // convert all characters to lower case
+    CHECK(""==toLower("")); // the empty string also works
+    CHECK("12345"==toLower("12345")); // ignore all non-alphabets
 }

@@ -16,9 +16,9 @@ ALLHEADERS = LabFlowAPI.cpp $(CLSHEADERS) $(FCTHEADERS) GenericUserAPI.h FileHan
 RSCHEADERS = $(CLSHEADERS) resourceMaps.h
 
 # All unit testing executables
-ALLTESTS = equipmentFunctionsTest experimentFunctionsTest labFunctionsTest toLowerHelperTest genericUserAPITest
+ALLTESTS = experimentFunctionsTest toLowerHelperTest fileHandlingTemplateTest
 
-all: LabFlowAPI static-analysis 
+all: LabFlowAPI static-analysis run-unit-tests
 
 LabFlowAPI: $(ALLOBJ) resourceMaps.h
 	g++ -lpthread $(ALLOBJ) resourceMaps.h -o LabFlowAPI
@@ -65,32 +65,27 @@ equipmentFunctions.o: equipmentFunctions.cpp equipmentFunctions.h
 toLowerHelper.o: toLowerHelper.cpp toLowerHelper.h 
 	g++ -Wall -c toLowerHelper.cpp
 
+FileHandlingTemplate.o: FileHandlingTemplate.cpp FileHandlingTemplate.h
+	g++ -Wall -c FileHandlingTemplate.cpp
+
 GenericUserAPI.o: GenericUserAPI.cpp GenericUserAPI.h Professor.h Administrator.h Student.h Lab.h labFunctions.h
 	g++ -Wall -c GenericUserAPI.cpp 
 
 
 # Unit testings
-equipmentFunctionsTest: equipmentFunctionsTest.cpp equipmentFunctions.h
-	g++ -lpthread equipmentFunctionsTest.cpp equipmentFunctions.h -o equipmentFunctionsTest 
+experimentFunctionsTest: experimentFunctionsTest.cpp experimentFunctions.h experimentFunctions.o Experiment.o toLowerHelper.o ResearchOutput.o
+	g++ -lpthread experimentFunctionsTest.cpp experimentFunctions.o Experiment.o toLowerHelper.o ResearchOutput.o -o experimentFunctionsTest 
 
-experimentFunctionsTest: experimentFunctionsTest.cpp experimentFunctions.h
-	g++ -lpthread experimentFunctionsTest.cpp experimentFunctions.h -o experimentFunctionsTest 
+toLowerHelperTest: toLowerHelperTest.cpp toLowerHelper.h toLowerHelper.o
+	g++ -lpthread toLowerHelperTest.cpp toLowerHelper.o -o toLowerHelperTest 
 
-labFunctionsTest: labFunctionsTest.cpp labFunctions.h
-	g++ -lpthread labFunctionsTest.cpp labFunctions.h -o labFunctionsTest 
-
-toLowerHelperTest: toLowerHelperTest.cpp toLowerHelper.h
-	g++ -Wall toLowerHelperTest.cpp toLowerHelper.h -o toLowerHelperTest 
-
-genericUserAPITest: GenericUserAPITest.cpp GenericUserAPI.h
-	g++ -lpthread GenericUserAPITest.cpp GenericUserAPI.h -o genericUserAPITest
+fileHandlingTemplateTest: fileHandlingTemplateTest.cpp FileHandlingTemplate.h Equipment.h
+	g++ -lpthread fileHandlingTemplateTest.cpp FileHandlingTemplate.h Equipment.o -o fileHandlingTemplateTest
 
 run-unit-tests: $(ALLTESTS)
-	./equipmentFunctionsTest
 	./experimentFunctionsTest
-	./labFunctionsTest
 	./toLowerHelperTest
-	./genericUserAPITest
+	./fileHandlingTemplateTest
 
 static-analysis:
 	cppcheck *.cpp
